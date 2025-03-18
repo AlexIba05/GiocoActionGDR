@@ -20,6 +20,9 @@ public class GamePanel extends JPanel implements Runnable {
     final int screenWidth = TileSize * maxScreenCol; // Larghezza totale
     final int screenHeight = TileSize * maxScreenRow; // Altezza totale
 
+    // Qui settiamo gli FPS (Frames Per Second) del gioco
+    int FPS = 60;
+
     KeyHandler keyH = new KeyHandler();
     Thread gameThread;
 
@@ -52,17 +55,36 @@ public class GamePanel extends JPanel implements Runnable {
         gameThread.start();
     }
 
+    // METODO DELTA/ACCUMULATOR
     @Override
     public void run() {
 
+        double drawInterval = (double) 1000000000 / FPS;
+        double delta= 0;
+        long lastTime = System.nanoTime();
+        long currentTime;
+        long timer = 0;
+        int drawCount= 0;
+
         while (gameThread != null) {
-            // System.out.println("Il loop del gioco sta funzionando");
 
-            // 1 AGGIORNARE: Aggiornare le informazioni (es. la posizione del giocatore)
-            update();
+            currentTime = System.nanoTime();
+            delta += (currentTime - lastTime) / drawInterval;
+            timer += (currentTime - lastTime);
+            lastTime = currentTime;
+            if (delta >= 1) {
 
-            // 2 DISEGNARE: Ri-disegnare la schermata con le informazioni aggiornate
-            repaint();
+                update();
+                repaint();
+                delta--;
+                drawCount++;
+            }
+
+            if (timer >= 1000000000) {
+                drawCount = 0;
+                System.out.println("drawCount: " + drawCount);
+                timer = 0;
+            }
         }
     }
 
@@ -73,9 +95,9 @@ public class GamePanel extends JPanel implements Runnable {
         } else if (keyH.downPressed) {
             playerY += playerSpeed;
         } else if (keyH.leftPressed) {
-            playerY -= playerSpeed;
+            playerX -= playerSpeed;
         } else if (keyH.rightPressed) {
-            playerY += playerSpeed;
+            playerX += playerSpeed;
         }
 
     }
